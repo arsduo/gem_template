@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in newsgirl.gemspec
+# Specify your gem's dependencies in gem_template.gemspec
 gemspec
 
 gem "rake"
