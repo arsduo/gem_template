@@ -31,22 +31,38 @@ task :rename, :class_name, :file_name do |t, args|
   class_matcher = /GemTemplate/
   file_matcher = /gem_template/
 
-  # for each file, change its contents and rename it if needed
-  Dir["**/*"].each do |path|
-    unless File.directory?(path)
-      content = File.read(path)
-      new_content = content.gsub(class_matcher, args.class_name).
-                            gsub(file_matcher,  args.file_name)
-      File.open(path, "w") {|f| f << new_content}
+  begin
+    # first, we rename directories
+    Dir["**/*"].each do |path|
+      # now, rename any files that match the old path
+      if File.directory?(path) && path =~ file_matcher
+        FileUtils.mv(path, path.gsub(file_matcher, args.file_name))
+      end
     end
 
-    # rename any files that match the old path
-    if path =~ file_matcher
-      FileUtils.mv(path, path.gsub(file_matcher, args.file_name))
+    # now, for each file, change its contents and rename it if needed
+    Dir["**/*"].each do |path|
+      unless File.directory?(path)
+        content = File.read(path)
+        new_content = content.gsub(class_matcher, args.class_name).
+                              gsub(file_matcher,  args.file_name)
+        File.open(path, "w") {|f| f << new_content}
+
+        # now, rename any files that match the old path
+        if File.basename(path) =~ file_matcher
+          FileUtils.mv(path, path.gsub(file_matcher, args.file_name))
+        end
+      end
     end
+
+    # Finally, add and commit everything
+    system "git add . && git commit -m 'Rename gem_template to #{args.class_name}'"
+    puts "Renamed to #{args.class_name}!"
+  rescue
+    puts "An error occurred!  Resetting all changes."
+    system "git checkout . && git clean -d -f"
+    raise
   end
-  system "git add . && git commit -m 'Rename gem_template to #{class_name}'"
-  puts "Renamed to #{args.class_name}!"
 end
 
 # RSpec
