@@ -25,13 +25,28 @@ end
 Bundler::GemHelper.install_tasks
 
 # Renaming the template
-
+require 'fileutils'
 desc "Rename the template gem"
-task :rename do
-  class_name = "GemTemplate"
-  file_name = "gem_template"
+task :rename, :class_name, :file_name do |t, args|
+  class_matcher = /GemTemplate/
+  file_matcher = /gem_template/
 
+  # for each file, change its contents and rename it if needed
+  Dir["**/*"].each do |path|
+    unless File.directory?(path)
+      content = File.read(path)
+      new_content = content.gsub(class_matcher, args.class_name).
+                            gsub(file_matcher,  args.file_name)
+      File.open(path, "w") {|f| f << new_content}
+    end
 
+    # rename any files that match the old path
+    if path =~ file_matcher
+      FileUtils.mv(path, path.gsub(file_matcher, args.file_name))
+    end
+  end
+  system "git add . && git commit -m 'Rename gem_template to #{class_name}'"
+  puts "Renamed to #{args.class_name}!"
 end
 
 # RSpec
