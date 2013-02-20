@@ -17,7 +17,7 @@ group :development, :test do
 
   # Code quality
   gem "rdoc"
-  gem "pelusa", path: "/Users/alexanderkoppel/external/pelusa" # github: "arsduo/pelusa"
+  gem "pelusa", github: "arsduo/pelusa"
 
   if RUBY_PLATFORM =~ /darwin/
     # OS X integration
